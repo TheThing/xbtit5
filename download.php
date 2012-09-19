@@ -47,7 +47,18 @@ if (!$CURUSER || $CURUSER["can_download"]=="no")
 if(ini_get('zlib.output_compression'))
   ini_set('zlib.output_compression','Off');
 
-$infohash=mysql_real_escape_string($_GET["id"]);
+$infohash = "";
+if ($_GET["id"] == NULL && $_GET["f"] != NULL) {
+  $file_ids =get_result("SELECT info_hash FROM {$TABLE_PREFIX}files WHERE concat(filename,'.torrent')='".mysql_real_escape_string($_GET["f"])."' order by `lastupdate` desc",true,$btit_settings['cache_duration']);
+  if (count($file_ids) >= 1) {
+    $infohash = $file_ids[0]["info_hash"];
+  } else {
+	$infohash=mysql_real_escape_string($_GET["id"]);
+  }
+} else {
+  $infohash=mysql_real_escape_string($_GET["id"]);
+}
+
 $filepath=$TORRENTSDIR."/".$infohash . ".btf";
 
 if (!is_file($filepath) || !is_readable($filepath))
@@ -79,7 +90,7 @@ if ($row["external"]=="yes" || !$PRIVATE_ANNOUNCE)
     $alltorrent = fread($fd, filesize($filepath));
     fclose($fd);
     header("Content-Type: application/x-bittorrent");
-    header('Content-Disposition: attachment; filename="'.$f.'"');
+    header('Content-Disposition: attachment; filename="'.rawurldecode($f).'"');
     print($alltorrent);
    }
 else
@@ -115,7 +126,7 @@ else
     $alltorrent=BEncode($array);
 
     header("Content-Type: application/x-bittorrent");
-    header('Content-Disposition: attachment; filename="'.$f.'"');
+    header('Content-Disposition: attachment; filename="'.rawurldecode($f).'"');
     print($alltorrent);
     }
 ?>
