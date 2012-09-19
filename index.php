@@ -30,6 +30,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 
+$DEBUG_THETHING = false;
+if (isset($_GET['debug'])) {
+ $DEBUG_THETHING = true;
+}
 
 if (file_exists("install.unlock") && file_exists("install.php"))
    {
@@ -159,6 +163,7 @@ require_once("$THIS_BASEPATH/include/blocks.php");
 
 $logo.="<div></div>";
 $dropdown=dropdown_menu();
+$menu_raw=get_menu_raw('d');
 $extra=extra_menu();
 $slideIt="<span style=\"align:left;\"><a href=\"javascript:collapse2.slideit()\"><img src=\"$STYLEURL/images/slide.png\" border=\"0\" alt=\"click\" /></a></span>";
 $header.="<div>".main_menu()."</div>";
@@ -183,6 +188,18 @@ if (!$no_columns && $pageID!='admin' && $pageID!='forum' && $pageID!='torrents' 
 $tpl->set("main_logo",$logo);
 
 $tpl->set("main_dropdown",$dropdown);
+
+$tpl->set("menu_isuser",!($CURUSER["uid"]==1 || !$CURUSER), true);
+$tpl->set("menu_canusers",$CURUSER["view_users"]=="yes", true);
+$tpl->set("menu_canupload",$CURUSER["can_upload"]=="yes", true);
+$tpl->set("menu_isadmin",$CURUSER["admin_access"]=="yes", true);
+$tpl->set("menu_isloggedin",!($CURUSER["uid"]==1 || !$CURUSER), true);
+$tpl->set("menu_username",$CURUSER['username']);
+$tpl->set("user_userid",$CURUSER['uid']);
+$tpl->set("user_random",$CURUSER['random']);
+$tpl->set("menu_useruploaded",makesize($CURUSER['uploaded']));
+$tpl->set("menu_userdownloaded",makesize($CURUSER['downloaded']));
+
 
 $tpl->set("main_extra",$extra);
 
@@ -365,9 +382,8 @@ switch ($pageID) {
 }
 
 
-
 // controll if client can handle gzip
-if ($GZIP_ENABLED)
+if ($GZIP_ENABLED && !$DEBUG_THETHING)
     {
      if (stristr($_SERVER["HTTP_ACCEPT_ENCODING"],"gzip") && extension_loaded('zlib') && ini_get("zlib.output_compression") == 0)
          {
@@ -392,7 +408,11 @@ else
     $gzip='disabled';
 
 
-
+if ($DEBUG_THETHING) {
+ echo '<!--';
+ print_r($CURUSER);
+ echo '-->';
+}
 
 // fetch page with right template
 switch ($pageID) {
@@ -428,6 +448,7 @@ switch ($pageID) {
         stdfoot();
         break;
 }
+
 
 
 
